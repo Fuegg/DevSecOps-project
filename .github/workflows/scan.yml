@@ -1,4 +1,4 @@
-name: WPScan WordPress
+name: WordPress WPScan
 
 on:
   push:
@@ -17,34 +17,42 @@ jobs:
         run: |
           docker compose -f docker/docker-compose.yml up -d
 
-      - name: Wait for WordPress to be ready
+      - name: Wait for MySQL + WordPress
         run: |
           echo "Waiting for WordPress..."
-          for i in {1..40}; do
-            if curl -s http://localhost:8080 | grep -qi "wordpress"; then
-              echo "WordPress is up!"
+
+          for i in {1..60}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 || true)
+
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
+              echo "WordPress is responding (HTTP $HTTP_CODE)"
               exit 0
             fi
+
             sleep 5
           done
+
           echo "WordPress did not start in time"
           docker ps
+          docker compose -f docker/docker-compose.yml logs
           exit 1
 
       - name: Run WPScan
         run: |
           mkdir -p scans
+
           docker run --rm --network host wpscanteam/wpscan \
             --url http://127.0.0.1:8080 \
             --enumerate u,vp,vt \
             --format cli \
+            --no-update \
             | tee scans/wpscan.txt
 
-      - name: Upload scan report
+      - name: Upload scan results
         uses: actions/upload-artifact@v4
         with:
           name: wpscan-report
-          path: scans/wpscan.txt
+          path: scans/
 
       - name: Stop containers
         if: always()
