@@ -62,6 +62,8 @@ jobs:
             --enumerate u,vp,vt \
             --format cli \
             --no-update \
+            --api-token "${{ secrets.WPSCAN_API_TOKEN }}" \
+            --fail-fast --api-token-fail \
             | tee scans/wpscan.txt
 
       - name: Upload WPScan report
