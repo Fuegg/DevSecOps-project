@@ -1,0 +1,52 @@
+name: WPScan WordPress
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  wpscan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start WordPress stack
+        run: |
+          docker compose -f docker/docker-compose.yml up -d
+
+      - name: Wait for WordPress to be ready
+        run: |
+          echo "Waiting for WordPress..."
+          for i in {1..40}; do
+            if curl -s http://localhost:8080 | grep -qi "wordpress"; then
+              echo "WordPress is up!"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "WordPress did not start in time"
+          docker ps
+          exit 1
+
+      - name: Run WPScan
+        run: |
+          mkdir -p scans
+          docker run --rm --network host wpscanteam/wpscan \
+            --url http://127.0.0.1:8080 \
+            --enumerate u,vp,vt \
+            --format cli \
+            | tee scans/wpscan.txt
+
+      - name: Upload scan report
+        uses: actions/upload-artifact@v4
+        with:
+          name: wpscan-report
+          path: scans/wpscan.txt
+
+      - name: Stop containers
+        if: always()
+        run: |
+          docker compose -f docker/docker-compose.yml down
