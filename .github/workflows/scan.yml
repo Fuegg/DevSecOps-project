@@ -1,4 +1,4 @@
-name: WordPress WPScan
+name: WordPress Secu
 
 on:
   push:
@@ -17,38 +17,38 @@ jobs:
         run: |
           docker compose -f docker/docker-compose.yml up -d
 
-      - name: Wait for MySQL + WordPress
+      - name: Wait for WordPress to be fully ready
         run: |
           echo "Waiting for WordPress..."
 
           for i in {1..60}; do
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 || true)
-
-            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
-              echo "WordPress is responding (HTTP $HTTP_CODE)"
+            if curl -s http://localhost:8080/wp-login.php | grep -qi "log in"; then
+              echo "WordPress is READY"
               exit 0
             fi
-
             sleep 5
           done
 
-          echo "WordPress did not start in time"
+          echo "WordPress did not start properly"
           docker ps
           docker compose -f docker/docker-compose.yml logs
           exit 1
+
+      - name: Allow extra boot time (stabilisation CI)
+        run: sleep 20
 
       - name: Run WPScan
         run: |
           mkdir -p scans
 
           docker run --rm --network host wpscanteam/wpscan \
-            --url http://127.0.0.1:8080 \
+            --url http://localhost:8080 \
             --enumerate u,vp,vt \
             --format cli \
             --no-update \
             | tee scans/wpscan.txt
 
-      - name: Upload scan results
+      - name: Upload WPScan report
         uses: actions/upload-artifact@v4
         with:
           name: wpscan-report
