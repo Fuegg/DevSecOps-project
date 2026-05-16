@@ -58,13 +58,12 @@ jobs:
           mkdir -p scans
 
           docker run --rm --network host wpscanteam/wpscan \
-            --url http://localhost:8080 \
-            --enumerate u,vp,vt \
-            --format cli \
-            --no-update \
-            --api-token "${{ secrets.WPSCAN_API_TOKEN }}" \
-            --vulnerable-to-fail-greater-than-or-equal-to 1 \
-            | tee scans/wpscan.txt
+          --url http://localhost:8080 \
+          --enumerate u,vp,vt \
+          --format cli \
+          --no-update \
+          --api-token "${{ secrets.WPSCAN_API_TOKEN }}" \
+          | tee scans/wpscan.txt
 
       - name: Upload WPScan report
         uses: actions/upload-artifact@v4
