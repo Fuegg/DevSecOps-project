@@ -22,7 +22,7 @@ jobs:
           echo "Waiting for WordPress..."
 
           for i in {1..60}; do
-            if curl -s http://localhost:8080/wp-login.php | grep -qi "log in"; then
+            if curl -s http://localhost:8080 | grep -qi "wordpress"; then
               echo "WordPress is READY"
               exit 0
             fi
