@@ -22,7 +22,8 @@ jobs:
           echo "Waiting for WordPress..."
 
           for i in {1..60}; do
-            if curl -s http://localhost:8080 | grep -qi "wordpress"; then
+            STATUS=$(curl -sL -w "%{http_code}" -o /dev/null http://localhost:8080 || true)
+            if [ "$STATUS" = "200" ]; then
               echo "WordPress is READY"
               exit 0
             fi
