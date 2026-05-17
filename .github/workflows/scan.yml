@@ -41,7 +41,7 @@ jobs:
 
           curl -s -X POST \
             -d "weblog_title=CI-Security-Test" \
-            -d "user_name=admin" \
+            -d "user_name=cyber_secure_user" \
             -d "admin_password=bIE5QDgtN0VDx2fd2Kx*3X12vf" \
             -d "admin_password2=bIE5QDgtN0VDx2fd2Kx*3X12vf" \
             -d "admin_email=ci-project@gmail.com" \
