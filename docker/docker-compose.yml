@@ -31,7 +31,6 @@ services:
       WORDPRESS_CONFIG_EXTRA: |
         define('DISALLOW_FILE_EDIT', true);
         define('DISALLOW_FILE_MODS', true);
-        define('FORCE_SSL_ADMIN', true);
         define('DISABLE_WP_CRON', true);
         if (!is_admin()) {
             add_filter('rest_authentication_errors', function ($result) {
