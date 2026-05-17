@@ -12,6 +12,7 @@ RUN sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf \
 RUN chown -R www-data:www-data /var/www/html
 
 COPY security.conf /etc/apache2/conf-available/security.conf
-RUN a2enconf security
+
+RUN a2enconf security && a2enmod rewrite
 
 USER www-data
