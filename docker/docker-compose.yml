@@ -32,6 +32,17 @@ services:
         define('DISALLOW_FILE_EDIT', true);
         define('DISALLOW_FILE_MODS', true);
         define('FORCE_SSL_ADMIN', true);
+        define('DISABLE_WP_CRON', true);
+        if (!is_admin()) {
+            add_filter('rest_authentication_errors', function ($result) {
+                if (!empty($result)) { return $result; }
+                if (!is_user_logged_in() && strpos($_SERVER['REQUEST_URI'], '/wp/v2/users') !== false) {
+                    return new WP_Error('rest_cannot_access', 'Accès refusé', array('status' => 401));
+                }
+                return $result;
+            });
+            add_filter('the_generator', '__return_false');
+        }
     networks:
       - wp-net
 
