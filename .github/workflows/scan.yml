@@ -57,7 +57,7 @@ jobs:
         run: |
           mkdir -p scans
 
-          docker run --rm --network host wpscan/wpscan \
+          docker run --rm --network host wpscanteam/wpscan \
           --url http://localhost:8080 \
           --enumerate u,vp,vt \
           --format cli \
