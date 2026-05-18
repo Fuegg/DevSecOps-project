@@ -57,7 +57,7 @@ jobs:
         run: |
           mkdir -p scans
 
-          docker run --rm --network host wpscanteam/wpscan \
+          docker run --rm --network host wpscan/wpscan \
           --url http://localhost:8080 \
           --enumerate u,vp,vt \
           --format cli \
@@ -75,3 +75,39 @@ jobs:
         if: always()
         run: |
           docker compose -f docker/docker-compose.yml down
+  publish:
+    runs-on: ubuntu-latest
+    needs: wpscan
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Image
+        run: |
+          docker build -t wp-secure:latest -f docker/wordpress/Dockerfile docker/
+
+          IMAGE_NAME="devsecops-wordpress"
+          DOCKERHUB_REPO="${{ secrets.DOCKERHUB_USERNAME }}/$IMAGE_NAME"
+          GHCR_REPO="ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME"
+
+          GHCR_REPO=$(echo "$GHCR_REPO" | tr '[:upper:]' '[:lower:]')
+
+          docker tag wp-secure:latest $DOCKERHUB_REPO:latest
+          docker tag wp-secure:latest $GHCR_REPO:latest
+
+          docker push $DOCKERHUB_REPO:latest
+          docker push $GHCR_REPO:latest
