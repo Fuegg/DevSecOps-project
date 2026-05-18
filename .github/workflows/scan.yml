@@ -56,8 +56,10 @@ jobs:
       - name: Run WPScan
         run: |
           mkdir -p scans
+          chmod 777 scans
 
-          docker run --rm --network host wpscanteam/wpscan \
+          docker run --rm --network host \
+            -v ${{ github.workspace }}/scans:/wp/scans \
           --url http://localhost:8080 \
           --enumerate u,vp,vt \
           --format cli \
